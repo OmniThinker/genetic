@@ -1,0 +1,5 @@
+build/
+dist/
+genetic.egg-info
+venv/
+.eggs
