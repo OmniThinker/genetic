@@ -8,6 +8,6 @@ setup(
     author="OmniThinker",
     install_requires=[],  # Where dependencies go
     setup_requires=['pytest-runner'],
-    tests_require=['pytest==8.3.3'],
+    tests_require=['pytest'],
     test_suite='tests',
 )
