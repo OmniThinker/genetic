@@ -3,3 +3,6 @@ dist/
 genetic.egg-info
 venv/
 .eggs
+.ipynb_checkpoints/
+.virtual_documents/
+*__pycache__*
