@@ -1,30 +1,55 @@
-import genetic
+from genetic import BitGenoType, Chromosome, BitFlipMutation, SinglePointCrossover, Individual, RouletteWheelSelection
+import numpy as np
+from typing import List
 
 
-def diff_letters(a, b):
-    return sum(a[i] != b[i] for i in range(len(a)))
+def test_BitGenoType_invariant():
+    geno_type: BitGenoType = BitGenoType(5)
+    chromosome: Chromosome = geno_type.create_chromosome()
+    assert np.all((chromosome.genes == 1) | (chromosome.genes == 0))
 
 
-class StringGenPopulation(genetic.Population):
-    def __init__(self, target, geno_type, n_individuals):
-        super().__init__(geno_type, n_individuals)
-        self.target = target
+def test_BitGenoType_BitFlipMutation_invariant():
+    geno_type: BitGenoType = BitGenoType(5)
+    chromosome: Chromosome = geno_type.create_chromosome()
 
-    def fitness(self, geno_type):
-        # Because geno_type is the same as pheno_type in this case we can just
-        # create our own fitness function for the geno_type
-        return -diff_letters(geno_type, self.target)
+    mutation: BitFlipMutation = BitFlipMutation(mutation_rate=0.5)
+
+    new_chromosome: Chromosome = mutation.mutate(chromosome)
+
+    assert chromosome != new_chromosome
+
+    assert np.all((new_chromosome.genes == 1) | (new_chromosome.genes == 0))
 
 
-def test_hello_world():
-    target_phrase = "Hello world!"
-    target_len = len(target_phrase)
-    geno_type = genetic.String(target_len)
+def test_BitGenoType_SinglePointCrossover():
+    geno_type: BitGenoType = BitGenoType(5)
+    chromosome: Chromosome = geno_type.create_chromosome()
+    chromsome2: Chromosome = geno_type.create_chromosome()
 
-    population = StringGenPopulation(target=target_phrase, geno_type=geno_type, n_individuals=100)
-    crossover = genetic.StringSinglePointCrossover(target_len)
-    mutation = genetic.StringMutation(0.01)
+    crossover: SinglePointCrossover = SinglePointCrossover()
 
-    for generation in range(100):
-        print("generation " + str(generation))
-        population.simulate().select().crossover(crossover).mutate(mutation)
+    child: Chromosome = crossover.crossover(chromosome, chromsome2)
+
+    # Don't really have a good test here
+    assert child != chromosome and child != chromsome2
+
+
+def test_BitGenoType_RouletteWheelSelection():
+    geno_type: BitGenoType = BitGenoType(5)
+    chromosome: Chromosome = geno_type.create_chromosome()
+    chromsome2: Chromosome = geno_type.create_chromosome()
+    individuals: List[Individual] = [Individual(chromosome), Individual(chromsome2)]
+
+    # Manually setting a fitness
+    individuals[0].fitness = 10
+    individuals[1].fitness = -10
+
+    selection: RouletteWheelSelection = RouletteWheelSelection(0.5)  # Half of the population needs to die out
+    new_individuals: List[Individual] = selection.select(individuals)
+
+    assert len(new_individuals) == 1
+    assert new_individuals[0].fitness == 10
+
+    individuals[1].fitness = 0
+    new_individuals: List[Individual] = selection.select(individuals)

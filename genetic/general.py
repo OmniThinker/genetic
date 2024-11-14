@@ -11,6 +11,9 @@ class Chromosome:
     def __repr__(self) -> str:
         return f'Chromsome({self.genes})'
 
+    def __eq__(self, o):
+        self.genes != o.genes
+
 
 class GenoType(abc.ABC):
     """
