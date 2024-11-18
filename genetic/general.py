@@ -2,6 +2,7 @@
 import abc
 from typing import List, TypeVar, Generic, Optional, Any
 import math
+import concurrent.futures
 
 
 class Chromosome:
@@ -51,8 +52,9 @@ class Individual(Generic[T]):
         self.chromosome = chromosome
         self.fitness: Optional[T] = None
 
-    def score_fitness(self, fitness_fn: Fitness[T]):
+    def score_fitness(self, fitness_fn: Fitness[T]) -> 'Individual':
         self.fitness = fitness_fn(self.chromosome)
+        return self
 
     def __lt__(self, other):
         f1 = self.fitness or 0
@@ -78,9 +80,12 @@ class Population():
         return max(self.individuals)
 
     def fitness(self):
-        # TODO: Parallellize the shit out of me, taking max workers etc.
-        for individual in self.individuals:
-            individual.score_fitness(self.fitness_fn)
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            futures = [executor.submit(individual.score_fitness, self.fitness_fn) for individual in self.individuals]
+
+            # Gather results from each completed future and update self.individuals
+            self.individuals = [future.result() for future in concurrent.futures.as_completed(futures)]
+
         return self
 
     def __or__(self, func):
